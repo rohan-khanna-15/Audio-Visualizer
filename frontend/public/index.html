@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-Time Procedural Audio Visualizer & Interactive HUD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="library-panel" aria-label="Uploaded audio library">
+        <div class="library-header">
+          <h2>Audio Library</h2>
+          <p id="welcomeUser">User: -</p>
+          <button id="sidebarLogoutBtn" class="btn btn-danger hidden-panel">
+            Logout
+          </button>
+        </div>
+
+        <div id="uploadBox" class="upload-box">
+          <label for="uploadInput" class="small-label"
+            >Upload Audio or Video File</label
+          >
+          <input id="uploadInput" type="file" accept="audio/*,video/*" />
+          <button id="uploadBtn" class="btn btn-primary">Upload</button>
+          <p id="uploadStatus" class="small-status">No file selected</p>
+        </div>
+
+        <div id="adminUsersBox" class="upload-box hidden-panel">
+          <h3 class="admin-title">Users</h3>
+          <ul id="userList" class="user-list"></ul>
+          <p id="selectedUserInfo" class="small-status">
+            Select a user to view files
+          </p>
+        </div>
+
+        <div id="analyticsBox" class="upload-box hidden-panel">
+          <h3 class="admin-title">Library Analytics</h3>
+          <div class="analytics-grid">
+            <p>Total Users <strong id="analyticsUsers">-</strong></p>
+            <p>Total Files <strong id="analyticsFiles">-</strong></p>
+            <p>Audio Files <strong id="analyticsAudio">-</strong></p>
+            <p>Video Files <strong id="analyticsVideo">-</strong></p>
+            <p>Recent Uploads <strong id="analyticsRecent">-</strong></p>
+            <p>Top Uploader <strong id="analyticsTopUploader">-</strong></p>
+          </div>
+        </div>
+
+        <div class="file-list-wrap">
+          <h3 id="fileListTitle">Uploaded Files</h3>
+          <div class="library-tools">
+            <input
+              id="fileSearchInput"
+              type="text"
+              placeholder="Search files by name"
+              aria-label="Search files" />
+            <select id="fileSortSelect" aria-label="Sort files">
+              <option value="recent">Sort: Newest</option>
+              <option value="name">Sort: Name A-Z</option>
+              <option value="type">Sort: Type</option>
+            </select>
+          </div>
+          <p id="libraryStats" class="small-status">0 files</p>
+          <ul id="fileList" class="file-list"></ul>
+        </div>
+      </aside>
+
+      <main class="visualizer-area">
+        <canvas id="visualizerCanvas" aria-label="Audio Visualizer"></canvas>
+
+        <section class="hud" aria-label="Audio controls HUD">
+          <div class="hud-title-row">
+            <div>
+              <h1>Audio Visualizer HUD</h1>
+              <p id="statusText">Idle</p>
+            </div>
+
+            <div class="user-actions">
+              <span id="topUserName">-</span>
+              <button id="logoutBtn" class="btn btn-danger">Logout</button>
+            </div>
+          </div>
+
+          <div class="hud-grid">
+            <label class="control">
+              <span>Input Source</span>
+              <select id="sourceSelect">
+                <option value="mic">Microphone</option>
+                <option value="library">Library Audio</option>
+              </select>
+            </label>
+
+            <label class="control">
+              <span>Visualizer Mode</span>
+              <select id="modeSelect">
+                <option value="bars">Bars</option>
+                <option value="circular">Circular Spectrum</option>
+                <option value="wave">Waveform</option>
+                <option value="auto">Auto Mix</option>
+              </select>
+            </label>
+
+            <label class="control slider-control">
+              <span>Volume</span>
+              <input
+                id="volumeSlider"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value="0.8" />
+            </label>
+
+            <label class="control slider-control">
+              <span>Sensitivity</span>
+              <input
+                id="sensitivitySlider"
+                type="range"
+                min="0.6"
+                max="3"
+                step="0.1"
+                value="1.5" />
+            </label>
+          </div>
+
+          <div class="hud-actions">
+            <button id="startBtn" class="btn btn-primary">Start</button>
+            <button id="playPauseBtn" class="btn">Play/Pause</button>
+            <button id="fullscreenBtn" class="btn">Fullscreen</button>
+            <button id="snapshotBtn" class="btn">Snapshot</button>
+          </div>
+
+          <div class="preset-panel">
+            <h3>Preset Manager</h3>
+            <div class="preset-grid">
+              <input
+                id="presetNameInput"
+                type="text"
+                maxlength="40"
+                placeholder="Preset name (example: Chill Wave)"
+                aria-label="Preset name" />
+              <select id="presetSelect" aria-label="Saved presets">
+                <option value="">Saved presets</option>
+              </select>
+            </div>
+            <div class="preset-actions">
+              <button id="savePresetBtn" class="btn">Save Preset</button>
+              <button id="applyPresetBtn" class="btn">Apply Preset</button>
+              <button id="deletePresetBtn" class="btn btn-danger">
+                Delete Preset
+              </button>
+            </div>
+          </div>
+
+          <div class="session-panel">
+            <h3>Session Recorder</h3>
+            <div class="session-actions">
+              <button id="startSessionBtn" class="btn">Start Session</button>
+              <button id="stopSessionBtn" class="btn">Stop Session</button>
+              <button id="exportSessionBtn" class="btn">
+                Export Session JSON
+              </button>
+            </div>
+            <p id="sessionInfo" class="small-status">No recorded session</p>
+            <canvas
+              id="sessionChart"
+              width="620"
+              height="130"
+              aria-label="Session chart"></canvas>
+          </div>
+
+          <div class="stats-row">
+            <span id="fpsStat">FPS: --</span>
+            <span id="levelStat">Level: --</span>
+            <span id="beatStat">Beat: --</span>
+          </div>
+
+          <div class="insight-panel" aria-label="Live music insights">
+            <h3>Live Music Insights</h3>
+            <div class="insight-grid">
+              <p>Estimated BPM <strong id="bpmValue">--</strong></p>
+              <p>Estimated Key <strong id="keyValue">--</strong></p>
+              <p>Energy Mood <strong id="moodValue">--</strong></p>
+              <p>Groove Stability <strong id="grooveValue">--</strong></p>
+              <p>Last Moment <strong id="lastMomentValue">None</strong></p>
+            </div>
+            <div class="session-actions">
+              <button id="exportInsightsBtn" class="btn">
+                Export Insights
+              </button>
+            </div>
+            <ul id="momentList" class="moment-list">
+              <li>No moments detected yet</li>
+            </ul>
+          </div>
+
+          <div
+            class="audio-detail-panel"
+            aria-label="Detailed audio statistics">
+            <h3>Detailed Audio Analytics</h3>
+            <div class="detail-grid">
+              <p>Bass (20-140Hz) <strong id="bassValue">--</strong></p>
+              <div class="meter"><span id="bassBar"></span></div>
+
+              <p>Mid (400-2000Hz) <strong id="midValue">--</strong></p>
+              <div class="meter"><span id="midBar"></span></div>
+
+              <p>Treble (2-12kHz) <strong id="trebleValue">--</strong></p>
+              <div class="meter"><span id="trebleBar"></span></div>
+
+              <p>
+                Dominant Frequency <strong id="dominantFreqValue">--</strong>
+              </p>
+              <p>Pitch Estimate <strong id="pitchValue">--</strong></p>
+              <p>Spectral Centroid <strong id="centroidValue">--</strong></p>
+              <p>
+                Spectral Rolloff (85%) <strong id="rolloffValue">--</strong>
+              </p>
+              <p>RMS Loudness <strong id="rmsValue">--</strong></p>
+              <p>Zero Crossing Rate <strong id="zcrValue">--</strong></p>
+              <p>Spectral Flux <strong id="fluxValue">--</strong></p>
+              <p>Dynamic Range <strong id="dynamicRangeValue">--</strong></p>
+            </div>
+            <canvas
+              id="detailStatsChart"
+              width="620"
+              height="120"
+              aria-label="Detailed audio trend chart"></canvas>
+          </div>
+        </section>
+
+        <div
+          id="hudResizeHandle"
+          class="hud-resize-handle"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize HUD and visualizer"></div>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

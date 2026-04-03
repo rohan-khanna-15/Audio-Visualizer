@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Audio Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="login-page">
+    <main class="login-card" aria-label="Login Form">
+      <h1>Audio Visualizer Login</h1>
+      <p>Enter login details</p>
+
+      <form id="loginForm" class="login-form">
+        <label>
+          <span>Username</span>
+          <input id="username" type="text" required />
+        </label>
+
+        <label>
+          <span>Password</span>
+          <input id="password" type="password" required />
+        </label>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+
+      <p>If new, register below</p>
+
+      <form id="registerForm" class="login-form">
+        <label>
+          <span>New Username</span>
+          <input
+            id="newUsername"
+            type="text"
+            minlength="3"
+            maxlength="20"
+            required />
+        </label>
+
+        <label>
+          <span>New Password</span>
+          <input id="newPassword" type="password" minlength="6" required />
+        </label>
+
+        <button type="submit" class="btn">Create User</button>
+      </form>
+
+      <p id="loginMessage" class="status-text">Enter credentials to continue</p>
+    </main>
+
+    <script>
+      const form = document.getElementById("loginForm");
+      const registerForm = document.getElementById("registerForm");
+      const userInput = document.getElementById("username");
+      const passInput = document.getElementById("password");
+      const newUsername = document.getElementById("newUsername");
+      const newPassword = document.getElementById("newPassword");
+      const message = document.getElementById("loginMessage");
+
+      const logged =
+        localStorage.getItem("authUser") ||
+        localStorage.getItem("loggedInUser");
+      if (logged) {
+        window.location.href = "/index.html";
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        message.textContent = "Checking credentials...";
+
+        try {
+          const response = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: userInput.value.trim(),
+              password: passInput.value,
+            }),
+          });
+
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            message.textContent = data.message || "Login failed";
+            return;
+          }
+
+          localStorage.setItem(
+            "authUser",
+            JSON.stringify({
+              username: data.username,
+              role: data.role || "student",
+            }),
+          );
+          localStorage.setItem("loggedInUser", data.username);
+          window.location.href = "/index.html";
+        } catch (error) {
+          message.textContent = "Server is not reachable";
+        }
+      });
+
+      registerForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        message.textContent = "Creating user...";
+
+        try {
+          const response = await fetch("/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: newUsername.value.trim(),
+              password: newPassword.value,
+            }),
+          });
+
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            message.textContent = data.message || "User creation failed";
+            return;
+          }
+
+          message.textContent = "User created. You can login now.";
+          userInput.value = data.username;
+          passInput.value = "";
+          newPassword.value = "";
+        } catch (error) {
+          message.textContent = "Server is not reachable";
+        }
+      });
+    </script>
+  </body>
+</html>
